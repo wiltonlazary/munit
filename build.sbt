@@ -3,12 +3,15 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import sbtcrossproject.CrossPlugin.autoImport.CrossType
 import scala.collection.mutable
 def previousVersion = "0.7.0"
-def scala213 = "2.13.8"
-def scala212 = "2.12.15"
+
+def scala213 = "2.13.10"
+
+def scala212 = "2.12.17"
+
 def scala211 = "2.11.12"
 def scala3 = "3.1.2"
 def junitVersion = "4.13.2"
-def gcp = "com.google.cloud" % "google-cloud-storage" % "2.7.1"
+def gcp = "com.google.cloud" % "google-cloud-storage" % "2.20.1"
 inThisBuild(
   List(
     version ~= { old =>
@@ -41,11 +44,11 @@ mimaPreviousArtifacts := Set.empty
 crossScalaVersions := List()
 addCommandAlias(
   "scalafixAll",
-  "; ++2.12.10 ; scalafixEnable ; all scalafix test:scalafix"
+  s"; ++$scala212 ; scalafixEnable ; all scalafix test:scalafix"
 )
 addCommandAlias(
   "scalafixCheckAll",
-  "; ++2.12.10 ;  scalafixEnable ; scalafix --check ; test:scalafix --check"
+  s"; ++$scala212 ;  scalafixEnable ; scalafix --check ; test:scalafix --check"
 )
 val isPreScala213 = Set[Option[(Long, Long)]](Some((2, 11)), Some((2, 12)))
 val scala2Versions = List(scala213, scala212, scala211)
@@ -160,7 +163,7 @@ val sharedJSConfigure: Project => Project =
 
 val sharedNativeSettings: List[Def.Setting[_]] = List(
   skipIdeaSettings,
-  crossScalaVersions := allScalaVersions
+  crossScalaVersions := allScalaVersions.filterNot(_ == scala211)
 )
 val sharedNativeConfigure: Project => Project =
   _.disablePlugins(ScalafixPlugin, MimaPlugin)
@@ -226,9 +229,7 @@ lazy val munit = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     sharedNativeSettings,
     libraryDependencies ++= List(
       "org.scala-native" %%% "test-interface" % nativeVersion
-    ),
-    Compile / unmanagedSourceDirectories +=
-      (ThisBuild / baseDirectory).value / "munit" / "non-jvm" / "src" / "main"
+    )
   )
   .jsConfigure(sharedJSConfigure)
   .jsSettings(
@@ -238,9 +239,7 @@ lazy val munit = crossProject(JSPlatform, JVMPlatform, NativePlatform)
         .cross(CrossVersion.for3Use2_13),
       ("org.scala-js" %% "scalajs-junit-test-runtime" % scalaJSVersion)
         .cross(CrossVersion.for3Use2_13)
-    ),
-    Compile / unmanagedSourceDirectories +=
-      (ThisBuild / baseDirectory).value / "munit" / "non-jvm" / "src" / "main"
+    )
   )
   .jvmSettings(
     sharedJVMSettings,
@@ -282,7 +281,7 @@ lazy val munitScalacheck = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     libraryDependencies += {
       val partialVersion = CrossVersion.partialVersion(scalaVersion.value)
       if (isNotScala211(partialVersion))
-        "org.scalacheck" %%% "scalacheck" % "1.16.0"
+        "org.scalacheck" %%% "scalacheck" % "1.17.0"
       else
         "org.scalacheck" %%% "scalacheck" % "1.15.2"
     }

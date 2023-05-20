@@ -30,8 +30,10 @@ class FrameworkSuite extends BaseFrameworkSuite {
     Issue179FrameworkSuite,
     Issue285FrameworkSuite,
     Issue497FrameworkSuite,
+    Issue583FrameworkSuite,
     ScalaCheckExceptionFrameworkSuite,
-    BoxedFrameworkSuite
+    BoxedFrameworkSuite,
+    SkippedFrameworkSuite
   )
   tests.foreach { t => check(t) }
 }
